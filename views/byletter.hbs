@@ -10,11 +10,16 @@
 	{{/each}}
 </div>
 <br>
-<!-- navigation buttons -->
+<!-- navigation buttons-->
 
 <div class="container">
   <div class="row">
-    <div class="col-sm">
+    <div class="col">
+        <form method="GET" action="/">
+            <button type="submit" class = "btn btn-success">Home</button>
+        </form>
+    </div>
+    <div class="col">
         {{#if notstartofpage}}
             <form method="GET" action="/byletter">
                 <input type="hidden" name="letter" value="{{ letter }}">
@@ -24,7 +29,7 @@
         </td>
         {{/if}}
     </div>
-    <div class="col-sm">
+    <div class="col">
         {{#if notendofpage}}
         <td>
             <form method="GET" action="/byletter">
@@ -35,22 +40,32 @@
         </td>
         {{/if}}
     </div>
-    <div class="col-sm">
+    <div class="col">
     </div>
-    <div class="col-sm">
+    <div class="col">
     </div>
-    <div class="col-sm">
+    <div class="col">
     </div>
-    <div class="col-sm">
+    <div class="col">
     </div>
-    <div class="col-sm">
+    <div class="col">
     </div>
-    <div class="col-sm">
+    <div class="col">
     </div>
+    <div class="col">
+    </div>
+    <div class="col">
+    </div>
+
+    </div>    
   </div>
 </div>
+ 
+
+
 
 {{else}}
     <h2>Your search produces no result</h2>
 
 {{/if}}
+

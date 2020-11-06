@@ -8,7 +8,7 @@
 	<div class="col-8">
 		<h3>{{ this.book_title }}</h3>
 		<p class="lead">
-			{{{ this.author }}}
+			by {{{ this.book_author }}}
 		</p>
 		<p>
 			<code>Reviewer: </code> <i>{{ this.byline }}</i>
@@ -27,12 +27,12 @@
 				</a>
 	</div>
 </div>
-<br>
+<br><br>
 {{/each}}
 
 
 {{else}}
-    <h2>Your search produces no result</h2>
+    <h2>No reviews found</h2>
 
 {{/if}}
 

@@ -131,7 +131,11 @@ app.get('/book/:bookId', async (req, resp) => {
 			var newStr = result[0].authors.replace("|", ", ");
 			result[0].authors = newStr;
 		}
-		console.info(result[0].authors)
+		while (result[0].genres.indexOf("|") >= 0)
+		{
+			var newStr = result[0].genres.replace("|", ", ");
+			result[0].genres = newStr;
+		}
 
 		resp.format({
             'text/html': () => {
@@ -174,7 +178,7 @@ app.get('/bookReview/:bookName', async (req, resp) => {
     const result = await fetch(url) 
     //result.json returns yet another promise, containing the final json object to be examined.
 	const nytimesapiresult =  await result.json() 
-		
+		console.info(nytimesapiresult.results)
 	resp.status(200)
 	resp.type('text/html')
 	resp.render('bookReview', {

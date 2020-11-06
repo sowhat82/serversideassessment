@@ -32,6 +32,12 @@ Book Description
 				<i class="fas fa-home mr-1"></i>
 				Home
 			</a>
+
+			<form method="GET" action="/byletter">
+						<button type="submit" class="btn btn-primary btn-lg btn-block">Back</button>
+						<input type="hidden" id="letter" name="letter" value={{letter}}>
+			</form>
+
 			{{#if hasSite}}
 				<a class="btn btn-sm btn-primary" href="{{ show.official_site }}" target="_blank">
 				<i class="fas fa-paper-plane mr-1"></i>
