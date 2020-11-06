@@ -1,1 +1,34 @@
-by letter
+
+{{#if hasResult}}
+
+<div class="list-group">
+	{{#each byletter}}
+		<a class="list-group-item list-group-item-action" href="/book/{{this.book_id}}">
+			{{ this.title }}
+		</a>
+	{{/each}}
+</div>
+
+<!-- navigation buttons -->
+<tr>
+    <td>
+        <form method="GET" action="/byletter">
+            <input type="hidden" name="letter" value="{{ letter }}">
+            <input type="hidden" name="offset" value={{ prevOffset }}>
+            <button type="submit">Previous</button>
+        </form>
+    </td>
+    <td>
+        <form method="GET" action="/byletter">
+            <input type="hidden" name="letter" value="{{ letter }}">
+            <input type="hidden" name="offset" value={{ nextOffset }}>
+            <button type="submit">Next</button>
+        </form>
+
+    </td>
+</tr>
+
+{{else}}
+    <h2>Your search produces no result</h2>
+
+{{/if}}

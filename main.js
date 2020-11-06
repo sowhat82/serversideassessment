@@ -7,8 +7,8 @@ const mysql = require('mysql2/promise')
 const LIMIT = 10
 
 // SQL
-const SQL_BOOK_LIST = 'select book_id, title from book2018 order by title asc limit ?'
-const SQL_BOOK = 'select * from book2018 where book_id = ?'
+const SQL_BOOK_LETTER = 'select * from book2018 where title like ? order by title limit ? offset ?'
+const SQL_BOOK = 'select title, authors, pages, rating, rating_count, genres, image_url from book2018 where book_id = ?;'
 
 const startApp = async (app, pool) => {
 	const conn = await pool.getConnection()
@@ -51,7 +51,7 @@ app.get('/', async (req, resp) => {
 	const conn = await pool.getConnection()
 
 	try {
-		const [ result, _ ] = await conn.query(SQL_BOOK_LIST, [ LIMIT ])
+//		const [ result, _ ] = await conn.query(SQL_BOOK, [ LIMIT ])
 		resp.status(200)
 		resp.type('text/html')
 		resp.render('index')
@@ -64,17 +64,23 @@ app.get('/', async (req, resp) => {
 	}
 })
 
-app.get('/byletter/:letter', async (req, resp) => {
+app.get('/byletter', async (req, resp) => {
 
-	const letter = req.params.letter
-
+	const letter = req.query['letter']
+	const offset = parseInt(req.query['offset']) || 0
 	const conn = await pool.getConnection()
-
 	try {
-//		const [ result, _ ] = await conn.query(SQL_BOOK, [ letter ])
+		const [ result, _ ] = await conn.query(SQL_BOOK_LETTER, [ `${letter}%`, LIMIT, offset ])
 		resp.status(200)
 		resp.type('text/html')
-		resp.render('byletter')
+		resp.render('byletter', { 
+			byletter: result,
+			hasResult: result.length > 0,
+			letter,
+			prevOffset: Math.max(0, offset - LIMIT),
+			nextOffset: offset + LIMIT
+		})
+
 	} catch(e) {
 		console.error('ERROR: ', e)
 		resp.status(500)
@@ -84,9 +90,45 @@ app.get('/byletter/:letter', async (req, resp) => {
 	}
 })
 
-app.use((req, resp) => {
+app.get('/book/:bookId', async (req, resp) => {
+
+	const bookId = req.params['bookId']
+	const conn = await pool.getConnection()
+
+	try {
+		const [ result, _ ] = await conn.query(SQL_BOOK, [bookId])
+console.info(result)
+		resp.status(200)
+		resp.type('text/html')
+		resp.render('book', { 
+			book: result[0],
+		})
+
+	} catch(e) {
+		console.error('ERROR: ', e)
+		resp.status(500)
+		resp.end()
+	} finally {
+		conn.release()
+	}
+})
+
+//book review from API
+app.get('/bookReview/:bookName', async (req, resp) => {
+
+	const bookId = req.params['bookName']
+
+	
+	resp.status(200)
+	resp.type('text/html')
+	resp.render('bookReview')
+
+}
+)
+/*app.use((req, resp) => {
 	resp.redirect('/')
 })
+*/
 
 // start application
 startApp(app, pool)
