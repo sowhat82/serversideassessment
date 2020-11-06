@@ -1,6 +1,7 @@
 
 {{#if hasResult}}
-
+<h2>Letter {{letter}}</h2>
+<br>
 <div class="list-group">
 	{{#each byletter}}
 		<a class="list-group-item list-group-item-action" href="/book/{{this.book_id}}">
@@ -8,25 +9,46 @@
 		</a>
 	{{/each}}
 </div>
-
+<br>
 <!-- navigation buttons -->
-<tr>
-    <td>
-        <form method="GET" action="/byletter">
-            <input type="hidden" name="letter" value="{{ letter }}">
-            <input type="hidden" name="offset" value={{ prevOffset }}>
-            <button type="submit">Previous</button>
-        </form>
-    </td>
-    <td>
-        <form method="GET" action="/byletter">
-            <input type="hidden" name="letter" value="{{ letter }}">
-            <input type="hidden" name="offset" value={{ nextOffset }}>
-            <button type="submit">Next</button>
-        </form>
 
-    </td>
-</tr>
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+        {{#if notstartofpage}}
+            <form method="GET" action="/byletter">
+                <input type="hidden" name="letter" value="{{ letter }}">
+                <input type="hidden" name="offset" value={{ prevOffset }}>
+                <button type="submit" class = "btn btn-primary">Previous</button>
+            </form>
+        </td>
+        {{/if}}
+    </div>
+    <div class="col-sm">
+        {{#if notendofpage}}
+        <td>
+            <form method="GET" action="/byletter">
+                <input type="hidden" name="letter" value="{{ letter }}">
+                <input type="hidden" name="offset" value={{ nextOffset }}>
+                <button type="submit" class = "btn btn-primary">Next</button>
+            </form>
+        </td>
+        {{/if}}
+    </div>
+    <div class="col-sm">
+    </div>
+    <div class="col-sm">
+    </div>
+    <div class="col-sm">
+    </div>
+    <div class="col-sm">
+    </div>
+    <div class="col-sm">
+    </div>
+    <div class="col-sm">
+    </div>
+  </div>
+</div>
 
 {{else}}
     <h2>Your search produces no result</h2>

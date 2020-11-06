@@ -3,6 +3,7 @@ const express = require('express')
 const handlebars = require('express-handlebars')
 const mysql = require('mysql2/promise')
 const fetch = require('node-fetch')
+var morgan = require('morgan')
 const withquery = require('with-query').default
 
 // configurables
@@ -13,7 +14,9 @@ const nytimesapiurl = 'https://api.nytimes.com/svc/books/v3/reviews.json'
 
 // SQL
 const SQL_BOOK_LETTER = 'select * from book2018 where title like ? order by title limit ? offset ?'
+const SQL_BOOK_LETTER_COUNT = 'select count(*) as bookCount from book2018 where title like ?'
 const SQL_BOOK = 'select title, authors, pages, rating, rating_count, genres, image_url from book2018 where book_id = ?;'
+const SQL_BOOK_JSON = 'select book_id, title, authors, description, pages, rating, rating_count, genres from book2018 where book_id = ?;'
 
 const startApp = async (app, pool) => {
 	const conn = await pool.getConnection()
@@ -46,6 +49,8 @@ const pool = mysql.createPool({
 // create an instance of the application
 const app = express()
 
+app.use(morgan('combined'))
+
 // configure handlebars
 app.engine('hbs', handlebars({ defaultLayout: 'default.hbs' }))
 app.set('view engine', 'hbs')
@@ -76,6 +81,7 @@ app.get('/byletter', async (req, resp) => {
 	const conn = await pool.getConnection()
 	try {
 		const [ result, _ ] = await conn.query(SQL_BOOK_LETTER, [ `${letter}%`, LIMIT, offset ])
+		const [ resultCount, __ ] = await conn.query(SQL_BOOK_LETTER_COUNT, [`${letter}%`])
 		resp.status(200)
 		resp.type('text/html')
 		resp.render('byletter', { 
@@ -83,7 +89,10 @@ app.get('/byletter', async (req, resp) => {
 			hasResult: result.length > 0,
 			letter,
 			prevOffset: Math.max(0, offset - LIMIT),
-			nextOffset: offset + LIMIT
+			nextOffset: offset + LIMIT,
+			notstartofpage: !(offset==0),
+			notendofpage: !(offset+LIMIT>=resultCount[0].bookCount)
+
 		})
 
 	} catch(e) {
@@ -102,12 +111,42 @@ app.get('/book/:bookId', async (req, resp) => {
 
 	try {
 		const [ result, _ ] = await conn.query(SQL_BOOK, [bookId])
-console.info(result)
+		const [ jsonresult, __ ] = await conn.query(SQL_BOOK_JSON, [bookId])
 		resp.status(200)
-		resp.type('text/html')
-		resp.render('book', { 
-			book: result[0],
-		})
+
+//convert to required json return format
+		const jsondata = {
+			bookId: jsonresult[0].book_id,
+			title: jsonresult[0].title,
+			authors: jsonresult[0].authors,
+			summary: jsonresult[0].description,
+			pages: jsonresult[0].pages,
+			rating: jsonresult[0].rating,
+			ratingCount: jsonresult[0].rating_count,
+			genre: jsonresult[0].genres
+		}
+
+		while (result[0].authors.indexOf("|") >= 0)
+		{
+			var newStr = result[0].authors.replace("|", ", ");
+			result[0].authors = newStr;
+		}
+		console.info(result[0].authors)
+
+		resp.format({
+            'text/html': () => {
+				resp.type('text/html')
+				resp.render('book', {book: result[0]})
+			},
+            'application/json': () => {
+                resp.type('application/json')
+                resp.json(jsondata)
+            },
+            'default': () => {
+                resp.type('text/html')
+				resp.render('book', {book: result[0]})
+            }
+        })
 
 	} catch(e) {
 		console.error('ERROR: ', e)
@@ -130,8 +169,6 @@ app.get('/bookReview/:bookName', async (req, resp) => {
 			"api-key": API_KEY
 		}
 	)
-	
-console.info(url)
 
     //fetch returns a promise, to be opened using await. within it is an object with a json function. 
     const result = await fetch(url) 
@@ -140,9 +177,6 @@ console.info(url)
 		
 	resp.status(200)
 	resp.type('text/html')
-
-	console.info(nytimesapiresult.results)
-
 	resp.render('bookReview', {
 		copyright: nytimesapiresult.copyright, 
 		description: nytimesapiresult.results,
@@ -151,10 +185,6 @@ console.info(url)
 
 }
 )
-/*app.use((req, resp) => {
-	resp.redirect('/')
-})
-*/
-
+app.use(express.static(__dirname + '/static'))
 // start application
 startApp(app, pool)

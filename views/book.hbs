@@ -24,13 +24,13 @@ Book Description
 			<code>Genre: </code> <i>{{ book.genres }}</i>
 		</p>
 
-        <a href="/bookReview/{{book.title}}" target="_blank">Book Review</a>
+        <a href="/bookReview/{{book.title}}" target="_blank">Find Review</a>
         <br><br>
 
 		<div class="d-flex justify-content-between">
 			<a class="btn btn-sm btn-warning" href="/">
 				<i class="fas fa-home mr-1"></i>
-				Back
+				Home
 			</a>
 			{{#if hasSite}}
 				<a class="btn btn-sm btn-primary" href="{{ show.official_site }}" target="_blank">
