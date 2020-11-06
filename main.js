@@ -2,9 +2,14 @@
 const express = require('express')
 const handlebars = require('express-handlebars')
 const mysql = require('mysql2/promise')
+const fetch = require('node-fetch')
+const withquery = require('with-query').default
 
 // configurables
 const LIMIT = 10
+const API_KEY = process.env.API_KEY || ""
+const nytimesapiurl = 'https://api.nytimes.com/svc/books/v3/reviews.json'
+
 
 // SQL
 const SQL_BOOK_LETTER = 'select * from book2018 where title like ? order by title limit ? offset ?'
@@ -116,12 +121,33 @@ console.info(result)
 //book review from API
 app.get('/bookReview/:bookName', async (req, resp) => {
 
-	const bookId = req.params['bookName']
+	const bookName = req.params['bookName']
 
+    const url = withquery(
+        nytimesapiurl,
+        {
+			title: bookName,
+			"api-key": API_KEY
+		}
+	)
 	
+console.info(url)
+
+    //fetch returns a promise, to be opened using await. within it is an object with a json function. 
+    const result = await fetch(url) 
+    //result.json returns yet another promise, containing the final json object to be examined.
+	const nytimesapiresult =  await result.json() 
+		
 	resp.status(200)
 	resp.type('text/html')
-	resp.render('bookReview')
+
+	console.info(nytimesapiresult.results)
+
+	resp.render('bookReview', {
+		copyright: nytimesapiresult.copyright, 
+		description: nytimesapiresult.results,
+		hasResult: nytimesapiresult.results.length > 0,
+	})
 
 }
 )

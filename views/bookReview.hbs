@@ -1,1 +1,48 @@
-revew
+
+
+{{#if hasResult}}
+
+{{#each description}}
+
+<div class="row">
+	<div class="col-8">
+		<h3>{{ this.book_title }}</h3>
+		<p class="lead">
+			{{{ this.author }}}
+		</p>
+		<p>
+			<code>Reviewer: </code> <i>{{ this.byline }}</i>
+		</p>
+		<p>
+			<code>Review Date: </code> <i>{{ this.publication_dt }}</i>
+		</p>
+		<p>
+			<code>Review Summary: </code> <i>{{ this.summary }}</i>
+		</p>
+
+	
+				<a class="btn btn-sm btn-primary" href="{{ this.url }}" target="_blank">
+				<i class="fas fa-paper-plane mr-1"></i>
+					Full Review
+				</a>
+	</div>
+</div>
+<br>
+{{/each}}
+
+
+{{else}}
+    <h2>Your search produces no result</h2>
+
+{{/if}}
+
+
+        <div class="d-flex justify-content-between">
+			<a class="btn btn-sm btn-warning" href="/">
+				<i class="fas fa-home mr-1"></i>
+				Back
+			</a>
+		</div>
+
+<br>
+{{copyright}}
