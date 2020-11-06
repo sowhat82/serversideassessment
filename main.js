@@ -10,7 +10,7 @@ const withquery = require('with-query').default
 const LIMIT = 10
 const API_KEY = process.env.API_KEY || ""
 const nytimesapiurl = 'https://api.nytimes.com/svc/books/v3/reviews.json'
-
+var globalletter = ""
 
 // SQL
 const SQL_BOOK_LETTER = 'select * from book2018 where title like ? order by title limit ? offset ?'
@@ -76,7 +76,17 @@ app.get('/', async (req, resp) => {
 
 app.get('/byletter', async (req, resp) => {
 
-	const letter = req.query['letter']
+	const gobacktoletter = req.query['gobacktoletter']
+
+	if (gobacktoletter == "gobacktoletter"){
+		letter = globalletter
+	}
+	else{
+		globalletter = req.query['letter']
+		letter = req.query['letter']
+		globalletter = letter
+	}
+
 	const offset = parseInt(req.query['offset']) || 0
 	const conn = await pool.getConnection()
 	try {
