@@ -3,12 +3,25 @@
 <h2>Letter {{letter}}</h2>
 <br>
 <div class="list-group">
+
+
+
 	{{#each byletter}}
-		<a class="list-group-item list-group-item-action" href="/book/{{this.book_id}}">
-			{{ this.title }}
-		</a>
+        <div class="container">
+            <div class="row">
+                <div class="col-0">
+                    {{lookup ../indexcounter @key}}
+                </div>
+                <div class="col-6">
+                    <a class="list-group-item list-group-item-action" href="/book/{{../letter}}/{{this.book_id}}">
+                        {{ this.title }}
+                    </a>
+                </div>
+            </div>
+        </div>
 	{{/each}}
 </div>
+
 <br>
 <!-- navigation buttons-->
 

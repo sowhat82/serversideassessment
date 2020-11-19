@@ -13,6 +13,7 @@ const nytimesapiurl = 'https://api.nytimes.com/svc/books/v3/reviews.json'
 var globalletter = ""
 
 // SQL
+const SQL_BOOK_ALL = 'select * from book2018 order by title limit ? offset ?'
 const SQL_BOOK_LETTER = 'select * from book2018 where title like ? order by title limit ? offset ?'
 const SQL_BOOK_LETTER_COUNT = 'select count(*) as bookCount from book2018 where title like ?'
 const SQL_BOOK = 'select title, authors, pages, rating, rating_count, genres, image_url from book2018 where book_id = ?;'
@@ -49,7 +50,7 @@ const pool = mysql.createPool({
 // create an instance of the application
 const app = express()
 
-app.use(morgan('combined'))
+//app.use(morgan('combined'))
 
 // configure handlebars
 app.engine('hbs', handlebars({ defaultLayout: 'default.hbs' }))
@@ -74,6 +75,7 @@ app.get('/', async (req, resp) => {
 	}
 })
 
+
 app.get('/byletter', async (req, resp) => {
 
 	const gobacktoletter = req.query['gobacktoletter']
@@ -92,6 +94,14 @@ app.get('/byletter', async (req, resp) => {
 	try {
 		const [ result, _ ] = await conn.query(SQL_BOOK_LETTER, [ `${letter}%`, LIMIT, offset ])
 		const [ resultCount, __ ] = await conn.query(SQL_BOOK_LETTER_COUNT, [`${letter}%`])
+
+		var indexcounter = new Array(10)
+
+		for(var i = 0; i < 10; i++){
+			indexcounter[i] = offset+i+1; 
+		  }
+		
+
 		resp.status(200)
 		resp.type('text/html')
 		resp.render('byletter', { 
@@ -101,8 +111,8 @@ app.get('/byletter', async (req, resp) => {
 			prevOffset: Math.max(0, offset - LIMIT),
 			nextOffset: offset + LIMIT,
 			notstartofpage: !(offset==0),
-			notendofpage: !(offset+LIMIT>=resultCount[0].bookCount)
-
+			notendofpage: !(offset+LIMIT>=resultCount[0].bookCount),
+			indexcounter
 		})
 
 	} catch(e) {
@@ -114,19 +124,22 @@ app.get('/byletter', async (req, resp) => {
 	}
 })
 
-app.get('/book/:bookId', async (req, resp) => {
+app.get('/book/:letter/:bookId', async (req, resp) => {
 
 	const bookId = req.params['bookId']
-	const conn = await pool.getConnection()
+	const letter = req.params['letter']
 
+
+	const conn = await pool.getConnection()
 	try {
 		const [ result, _ ] = await conn.query(SQL_BOOK, [bookId])
 		const [ jsonresult, __ ] = await conn.query(SQL_BOOK_JSON, [bookId])
-		resp.status(200)
+
+
 
 //convert to required json return format
 		const jsondata = {
-			bookId: jsonresult[0].book_id,
+			bookId: jsonresult[0].book_id, 
 			title: jsonresult[0].title,
 			authors: jsonresult[0].authors,
 			summary: jsonresult[0].description,
@@ -147,6 +160,7 @@ app.get('/book/:bookId', async (req, resp) => {
 			result[0].genres = newStr;
 		}
 
+		resp.status(200)
 		resp.format({
             'text/html': () => {
 				resp.type('text/html')
@@ -188,7 +202,7 @@ app.get('/bookReview/:bookName', async (req, resp) => {
     const result = await fetch(url) 
     //result.json returns yet another promise, containing the final json object to be examined.
 	const nytimesapiresult =  await result.json() 
-		console.info(nytimesapiresult.results)
+		// console.info(nytimesapiresult.results)
 	resp.status(200)
 	resp.type('text/html')
 	resp.render('bookReview', {
@@ -199,6 +213,38 @@ app.get('/bookReview/:bookName', async (req, resp) => {
 
 }
 )
+
+// get /books resource to test whether client side can retrieve json 
+app.get('/getallbooks', async (req, resp) => {
+	const offset = parseInt(req.query['offset']) || 0
+	const limit = parseInt(req.query['limit']) || 10
+
+	const conn = await pool.getConnection()
+	try {
+		const [ result, _ ] = await conn.query(SQL_BOOK_ALL, [ limit, offset ])
+
+		var indexcounter = new Array(limit)
+
+		for(var i = 0; i < limit; i++){	
+			indexcounter[i] = offset+i+1; 
+		  }
+		
+		resp.header("Access-Control-Allow-Origin", "http://localhost:4200"); // update to match the domain you will make the request from
+		resp.status(200)
+		resp.type('application/json')
+		resp.json(result)
+
+	} catch(e) {
+		console.error('ERROR: ', e)
+		resp.status(500)
+		resp.end()
+	} finally {
+		conn.release()
+	}
+})
+
+
 app.use(express.static(__dirname + '/static'))
+
 // start application
 startApp(app, pool)
